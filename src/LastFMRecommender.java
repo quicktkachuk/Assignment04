@@ -1,5 +1,16 @@
+import java.util.HashMap;
+import java.util.PriorityQueue;
+
 public class LastFMRecommender
 {
+    private HashMap<Integer, PriorityQueue<Integer>> friendMap;
+    private HashMap<Integer, PriorityQueue<Artist>> artistMap;
+    private PriorityQueue<Artist> popularArtistQueue;
+
+    public LastFMRecommender(String friendsRoute, String artistsRoute, String userArtistRelationRoute)
+    {
+
+    }
 
     public void listFriends(int user)
     {
