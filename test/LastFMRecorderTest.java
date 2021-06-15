@@ -5,19 +5,38 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class LastFMRecorderTest
 {
-    private LastFMRecommender lastFMRecommender;
+    private LastFMRecommender recommender;
 
     @BeforeEach
     public void setUp()
     {
-        this.lastFMRecommender = new LastFMRecommender("user_friends.dat","artists.dat","user_artists.dat");
+        this.recommender = new LastFMRecommender("user_friends.dat","artists.dat","user_artists.dat");
     }
 
     @AfterEach
     public void tearDown()
     {
-        this.lastFMRecommender = null;
+        this.recommender = null;
     }
+
+    @Test
+    public void testAristMap()
+    {
+        assertEquals(17632,  this.recommender.getArtistMapSize());
+    }
+
+    @Test
+    public void testFriendMap()
+    {
+        assertEquals(1892,  this.recommender.getFriendsMapSize());
+    }
+
+    @Test
+    public void testUserMap()
+    {
+        assertEquals(1892,  this.recommender.getUserMapSize());
+    }
+
 
     @Test
     public void testListFriends()

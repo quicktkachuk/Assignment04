@@ -33,7 +33,8 @@ public class ArrayListLoaderTest {
         this.arrayListLoader.setFileName("user_friends.dat");
         this.arrayListLoader.load();
 
-        assertNotEquals(null, this.arrayListLoader.getDataArray());
+//        assertNotEquals(null, this.arrayListLoader.getDataArray());
+        assertEquals(25435,this.arrayListLoader.getDataArray().size());
     }
 
     @Test

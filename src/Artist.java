@@ -1,4 +1,4 @@
-public class Artist
+public class Artist implements Comparable
 {
     private int id;
     private int weightTotal;
@@ -7,7 +7,7 @@ public class Artist
     public Artist()
     {
         this.id = -1;
-        this.weightTotal = -1;
+        this.weightTotal = 0;
         this.name = "";
     }
 
@@ -38,5 +38,17 @@ public class Artist
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        if(!(o instanceof Artist))
+            throw new IllegalArgumentException();
+        else if(this.weightTotal < ((Artist) o).getWeightTotal())
+            return -1;
+        else if(this.weightTotal > ((Artist) o).getWeightTotal())
+            return 1;
+        else
+            return 0;
     }
 }
