@@ -8,7 +8,11 @@ public class ArrayListLoader {
     private ArrayList<String> dataArray;
     private String fileName;
 
-    //Loads data from the file specified in 'fileName' into an ArrayList.
+    public ArrayListLoader()
+    {
+        dataArray = new ArrayList<String>();
+    }
+
     public ArrayListLoader(String fileName){
         setFileName(fileName);
         dataArray = new ArrayList<String>();

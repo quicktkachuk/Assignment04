@@ -10,7 +10,7 @@ public class LastFMRecorderTest
     @BeforeEach
     public void setUp()
     {
-        this.lastFMRecommender = new LastFMRecommender();
+        this.lastFMRecommender = new LastFMRecommender("user_friends.dat","artists.dat","user_artists.dat");
     }
 
     @AfterEach
