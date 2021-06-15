@@ -5,6 +5,7 @@ public class LastFMRecommender
 {
     private HashMap<Integer, PriorityQueue<Integer>> friendMap;
     private HashMap<Integer, LinkedList<Artist>> userMap;
+//    private HashMap<Integer, User> userMap;
     private HashMap<Integer, Artist> artistMap;
     private PriorityQueue<Artist> popularArtistQueue;
 
@@ -171,7 +172,6 @@ public class LastFMRecommender
             if(this.friendMap.containsKey(userID))
             {
                 PriorityQueue<Integer> existingQueue = this.friendMap.get(userID);
-                existingQueue.add(friendID);
             }
             else
             {
