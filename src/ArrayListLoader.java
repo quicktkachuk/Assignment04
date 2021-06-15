@@ -41,4 +41,10 @@ public class ArrayListLoader {
     public ArrayList<String> getDataArray(){
         return this.dataArray;
     }
+
+    public void clear()
+    {
+        this.dataArray = new ArrayList<String>();
+        this.fileName = "";
+    }
 }
