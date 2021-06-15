@@ -3,9 +3,9 @@ import java.util.*;
 
 public class LastFMRecommender
 {
-    private HashMap<Integer, PriorityQueue<Integer>> friendMap;
-    private HashMap<Integer, LinkedList<Artist>> userMap;
-//    private HashMap<Integer, User> userMap;
+//    private HashMap<Integer, PriorityQueue<Integer>> friendMap;
+//    private HashMap<Integer, LinkedList<Artist>> userMap;
+    private HashMap<Integer, User> userMap;
     private HashMap<Integer, Artist> artistMap;
     private PriorityQueue<Artist> popularArtistQueue;
 
