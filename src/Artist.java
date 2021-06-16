@@ -16,6 +16,13 @@ public class Artist implements Comparable
         this.name = name;
     }
 
+    public Artist(Artist artist)
+    {
+        this.id = artist.getId();
+        this.name = artist.getName();
+        this.weightTotal = artist.getWeightTotal();
+    }
+
     public int getId() {
         return id;
     }

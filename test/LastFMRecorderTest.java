@@ -26,12 +26,6 @@ public class LastFMRecorderTest
     }
 
     @Test
-    public void testFriendMap()
-    {
-        assertEquals(1892,  this.recommender.getFriendsMapSize());
-    }
-
-    @Test
     public void testUserMap()
     {
         assertEquals(1892,  this.recommender.getUserMapSize());

@@ -1,10 +1,10 @@
-import javax.management.openmbean.InvalidKeyException;
+import edu.princeton.cs.algs4.In;
+
 import java.util.*;
 
 public class LastFMRecommender
 {
-//    private HashMap<Integer, PriorityQueue<Integer>> friendMap;
-//    private HashMap<Integer, LinkedList<Artist>> userMap;
+
     private HashMap<Integer, User> userMap;
     private HashMap<Integer, Artist> artistMap;
     private PriorityQueue<Artist> popularArtistQueue;
@@ -12,13 +12,13 @@ public class LastFMRecommender
 
     public LastFMRecommender(String friendsRoute, String artistsRoute, String userArtistRelationRoute)
     {
-        this.popularArtistQueue = new PriorityQueue<>(Collections.reverseOrder());
+        this.popularArtistQueue = new PriorityQueue<>(10);
+        this.userMap = new HashMap<>();
         ArrayListLoader loader = new ArrayListLoader();
 
         artistMapLoader(getArrayList(artistsRoute,loader));
-        friendMapLoader(getArrayList(friendsRoute, loader));
+        friendLoader(getArrayList(friendsRoute, loader));
         userMapLoader(getArrayList(userArtistRelationRoute, loader));
-        popularArtistBuilder();
     }
 
     public int getArtistMapSize()
@@ -31,22 +31,17 @@ public class LastFMRecommender
         return this.userMap.size();
     }
 
-    public int getFriendsMapSize()
-    {
-        return this.friendMap.size();
-    }
-
     public void listFriends(int user)
     {
-        PriorityQueue<Integer> friendsQueue;
+        ArrayList<Integer> friendList;
 
-        if(!this.friendMap.containsKey(user))
+        if(!this.userMap.containsKey(user))
             throw new IndexOutOfBoundsException();
         else
         {
             System.out.println("The userID " + user + " has the following friends: ");
-            friendsQueue = this.friendMap.get(user);
-            for (int id:friendsQueue)
+            friendList = this.userMap.get(user).getFriends();
+            for (int id:friendList)
             {
                 System.out.print(id + ", ");
             }
@@ -56,17 +51,15 @@ public class LastFMRecommender
 
     public void commonFriends(int user1, int user2)
     {
-        PriorityQueue<Integer> friend1 = new PriorityQueue<>();
-        PriorityQueue<Integer> friend2 = new PriorityQueue<>();
 
-        if(!(this.friendMap.containsKey(user1)) || !(this.friendMap.containsKey(user2)))
+        if(!(this.userMap.containsKey(user1)) || !(this.userMap.containsKey(user2)))
             throw new IndexOutOfBoundsException();
         else
         {
             System.out.println("The user " + user1 + " and user " + user2 + " have the following friends in common: ");
 
-            friend1.addAll(this.friendMap.get(user1));
-            friend2.addAll(this.friendMap.get(user2));
+            ArrayList<Integer> friend1 = new ArrayList<>(this.userMap.get(user1).getFriends());
+            ArrayList<Integer> friend2 = new ArrayList<>(this.userMap.get(user2).getFriends());
 
             friend1.retainAll(friend2);
 
@@ -81,8 +74,6 @@ public class LastFMRecommender
     public void listArtists(int user1, int user2)
     {
         //prints the list of artists listened by both users
-        LinkedList<Artist> userList1 = new LinkedList<>();
-        LinkedList<Artist> userList2 = new LinkedList<>();
 
         if(!(this.userMap.containsKey(user1)) || !(this.userMap.containsKey(user2)))
             throw new IndexOutOfBoundsException();
@@ -90,14 +81,14 @@ public class LastFMRecommender
         {
             System.out.println("The user " + user1 + " and user " + user2 + " have the following artists in common: ");
 
-            userList1.addAll(this.userMap.get(user1));
-            userList2.addAll(this.userMap.get(user2));
+            ArrayList<Integer> userList1 = getArtistIDList(this.userMap.get(user1).getArtists());
+            ArrayList<Integer> userList2 = getArtistIDList(this.userMap.get(user2).getArtists());
 
             userList1.retainAll(userList2);
 
-            for (Artist artist:userList1)
+            for (int artistID:userList1)
             {
-                System.out.print(artist.getName() + ", ");
+                System.out.print(this.artistMap.get(artistID).getName() + ", ");
             }
             System.out.print("End\n");
         }
@@ -105,10 +96,11 @@ public class LastFMRecommender
 
     public void listTop10()
     {
+        popularArtistBuilder();
         System.out.println("The top 10 artists are: ");
-        for(int i = 0; i < 10; i++)
+        for(int i = 10; i > 0; i--)
         {
-            System.out.println("#" + (i+1) + ": " + this.popularArtistQueue.poll().getName());
+            System.out.println("#" + (i) + ": " + this.popularArtistQueue.poll().getName());
         }
     }
 
@@ -116,15 +108,78 @@ public class LastFMRecommender
     public void recommend10(int user)
     {
         //Recommends 10 most popular artists listened by the given user and their friends
-        if(!(this.friendMap.containsKey(user)))
+        if(!(this.userMap.containsKey(user)))
             throw new IndexOutOfBoundsException();
-        else {
+        else
+        {
+            //Find artistID in common
 
+            //List of friends
+            ArrayList<Integer> friendList = this.userMap.get(user).getFriends();
 
-            for (int userID : this.friendMap.get(user)) {
+            //List of artist IDs user listens to (deep copy)
+            ArrayList<Integer> finalIDList = new ArrayList<>(getArtistIDList(this.userMap.get(user).getArtists()));
 
+            //Start final list, deep copy of user's artists
+            ArrayList<Artist> finalArtistList = new ArrayList<>(this.userMap.get(user).getArtists());
+
+            for (int friend:friendList)
+            {
+                //Get user profile of friend
+                User userFriend = this.userMap.get(friend);
+
+                //Get list of artistIDs associated w/current user
+                ArrayList<Integer> friendsArtistIDs = getArtistIDList(this.userMap.get(friend).getArtists());
+
+                //Get list of artists associated w/current user
+                ArrayList<Artist> friendsArtists = this.userMap.get(friend).getArtists();
+
+                for (int artistID:friendsArtistIDs)
+                {
+                    int friendIndex = getIndexOfArtist(artistID, friendsArtists);
+
+                    //Check if artistID is shared between the two lists
+                    if(finalIDList.contains(artistID))
+                    {
+                        //If in list, increase weight appropriately
+                        //Get weight for each user, update
+                        int finalIndex = getIndexOfArtist(artistID, finalArtistList);
+                        finalArtistList.get(finalIndex).setWeightTotal(userFriend.getArtists().get(friendIndex).getWeightTotal() + finalArtistList.get(finalIndex).getWeightTotal());
+                    }
+                    else
+                    {
+                        //If artistID is not on list, add the corresponding artist
+                        finalArtistList.add(userFriend.getArtists().get(friendIndex));
+                    }
+                    finalIDList.get(artistID);
+                }
+            }
+
+            Collections.sort(finalArtistList);
+
+            //Print out list of top 10
+            System.out.println("");
+            for(int i = finalArtistList.size() - 1; i > finalArtistList.size() - 10; i--)
+            {
+                System.out.println(finalArtistList.get(i).getName());
             }
         }
+    }
+
+    private int getIndexOfArtist(int artistID, ArrayList<Artist> artists)
+    {
+        boolean found = false;
+        int count = 0;
+        while(!found || count < artists.size())
+        {
+            int currentID = artists.get(count).getId();
+            if(currentID == artistID) {
+                found = true;
+                return count;
+            }
+            count++;
+        }
+        return -1;
     }
 
     private ArrayList<String> getArrayList(String route, ArrayListLoader loader)
@@ -155,9 +210,8 @@ public class LastFMRecommender
 
     }
 
-    private void friendMapLoader(ArrayList<String> friendList)
+    private void friendLoader(ArrayList<String> friendList)
     {
-        this.friendMap = new HashMap<>();
 
         //Removing first row, only contains column info
         friendList.remove(0);
@@ -169,22 +223,26 @@ public class LastFMRecommender
             int friendID = Integer.parseInt(brokenLine[1]);
 
             //Check to see if userID is already present in HashMap
-            if(this.friendMap.containsKey(userID))
+            if(this.userMap.containsKey(userID))
             {
-                PriorityQueue<Integer> existingQueue = this.friendMap.get(userID);
+                ArrayList<Integer> existingList = this.userMap.get(userID).getFriends();
+                existingList.add(friendID);
             }
             else
             {
-                PriorityQueue<Integer> newQueue = new PriorityQueue<>();
-                newQueue.add(friendID);
-                this.friendMap.put(userID,newQueue);
+                ArrayList<Integer> newList = new ArrayList<>();
+                newList.add(friendID);
+                User newUser = new User();
+                newUser.setFriends(newList);
+//                newUser.setUserID(userID);
+                this.userMap.put(userID, newUser);
             }
         }
     }
 
     private void userMapLoader(ArrayList<String> userList)
     {
-        this.userMap = new HashMap<>();
+//        this.userMap = new HashMap<>();
 
         //Removing first row, it only contains column information
         userList.remove(0);
@@ -200,14 +258,24 @@ public class LastFMRecommender
             //Check to see if userID exists
             if(this.userMap.containsKey(userID))
             {
-                LinkedList<Artist> existingQueue = this.userMap.get(userID);
-                existingQueue.add(this.artistMap.get(artistID));
+                ArrayList<Artist> currentArtists = this.userMap.get(userID).getArtists();
+                Artist existingArtist = this.artistMap.get(artistID);
+                Artist newArtist = new Artist();
+
+                newArtist.setName(existingArtist.getName());
+                newArtist.setId(existingArtist.getId());
+                newArtist.setWeightTotal(weight);
+
+                currentArtists.add(newArtist);
+//                LinkedList<Artist> existingQueue = this.userMap.get(userID);
+//                existingQueue.add(this.artistMap.get(artistID));
             }
             else
             {
-                LinkedList<Artist> newQueue = new LinkedList<>();
-                newQueue.add(this.artistMap.get(artistID));
-                this.userMap.put(userID,newQueue);
+                System.out.println("Why'd you go to Ravenholm?");
+//                LinkedList<Artist> newQueue = new LinkedList<>();
+//                newQueue.add(this.artistMap.get(artistID));
+//                this.userMap.put(userID,newQueue);
             }
 
             //Update weight for current artist
@@ -224,7 +292,23 @@ public class LastFMRecommender
         {
             Artist currentArtist = this.artistMap.get(artistID);
             this.popularArtistQueue.add(currentArtist);
+            if(this.popularArtistQueue.size() > 10)
+            {
+                this.popularArtistQueue.poll();
+            }
         }
+    }
+
+    //Turns list of artists into list of artistIDs, which can then be
+    private ArrayList<Integer> getArtistIDList(ArrayList<Artist> artists)
+    {
+        ArrayList<Integer> artistIDList = new ArrayList<>();
+        for (Artist artist:artists)
+        {
+            artistIDList.add(artist.getId());
+        }
+
+        return artistIDList;
     }
 
     public static void main(String[] args)
@@ -234,6 +318,7 @@ public class LastFMRecommender
         recommender.commonFriends(2,275);
         recommender.listArtists(2,275);
         recommender.listTop10();
+        recommender.recommend10(2);
         System.out.println("Done!");
     }
 
